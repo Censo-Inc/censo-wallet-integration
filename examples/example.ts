@@ -11,7 +11,7 @@ function onFinished(success: boolean) {
   console.log(`session finished: ${success}`)
 }
 
-sdk.initiate("Wallet Name", onFinished).then(session => {
+sdk.initiate(onFinished).then(session => {
       // after the session is established, the SDK will execute this callback expecting it to return the seed phrase in binary form
       // this will be immediately encrypted and sent to the user's Censo app for them to add
       async function onConnected() {

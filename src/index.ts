@@ -239,13 +239,13 @@ export enum Language {
 }
 
 export default class CensoWalletIntegration {
-  //apiUrl = 'https://api.censo.co'
-  apiUrl = 'http://localhost:9000'
+  apiUrl = 'https://api.censo.co'
   apiVersion = 'v1'
   linkScheme = 'censo-import-integration'
   linkVersion = 'v1'
 
-  initiate = (name: string, onFinished: (success: boolean) => void): Promise<Session> => {
+  initiate = (onFinished: (success: boolean) => void): Promise<Session> => {
+    const name = (typeof window !== "undefined" ? window.location.hostname : "UNKNOWN")
     const session = new Session(name, this.apiUrl, this.apiVersion, this.linkScheme, this.linkVersion, onFinished)
     return session.setKeypairs()
   }
