@@ -9,7 +9,7 @@ import elliptic from 'js-crypto-ec';
 import sha256 from 'js-sha256';
 import { Buffer } from 'buffer';
 
-class Session {
+export class Session {
   private name: string
   private readonly apiUrl: string
   private readonly apiVersion: string
@@ -175,6 +175,11 @@ class Session {
     hasher.update(counter)
     hasher.update(iv)
     return new Uint8Array(hasher.digest())
+  }
+
+  cancel = () => {
+    this.finished = true
+    this.onFinished(false)
   }
 
   phrase = async (binaryPhrase: string, language?: Language, label?: string) => {
