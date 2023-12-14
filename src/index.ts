@@ -178,6 +178,9 @@ export class Session {
   }
 
   cancel = () => {
+    if (this.checkConnectedInterval != null) {
+      clearInterval(this.checkConnectedInterval)
+    }
     this.finished = true
     this.onFinished(false)
   }
