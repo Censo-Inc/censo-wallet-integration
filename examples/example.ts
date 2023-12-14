@@ -1,7 +1,14 @@
-import CensoWalletIntegration, { Language } from '../src/index.js'
+import CensoWalletIntegration, {CensoWalletConfig, Language} from '../src/index.js'
 import { mnemonicToEntropy } from "bip39";
 
-const sdk = new CensoWalletIntegration();
+const sdk = new CensoWalletIntegration(
+  new CensoWalletConfig(
+    process.env.CENSO_API_URL ?? 'https://api.censo.co',
+    process.env.CENSO_API_VERSION ?? 'v1',
+    process.env.CENSO_LINK_SCHEME ?? 'censo-import',
+    process.env.CENSO_LINK_VERSION ?? 'v1'
+  )
+);
 
 const seedPhrase = mnemonicToEntropy(
   'grocery crush fantasy pulse struggle brain federal equip remember figure lyrics afraid tape ugly gold yard way isolate drill lawn daughter either supply student'

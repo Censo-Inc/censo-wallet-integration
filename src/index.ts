@@ -152,7 +152,12 @@ class Session {
     const signature = await subtle.sign(this.ECDSA_SIGN_VERIFY, this.channelKeyPair!.privateKey, dateInMillisAsBytes)
     const encodedSignature = this.base64ToBase64Url(Buffer.from(signature).toString('base64'))
     const encodedName = this.base64ToBase64Url(Buffer.from(this.name).toString('base64'))
-    return `${this.linkScheme}://${this.linkVersion}/${base58.encode(new Uint8Array(publicKeyBytes))}/${dateInMillis}/${encodedSignature}/${encodedName}`
+    const verified = await subtle.verify(this.ECDSA_SIGN_VERIFY, this.channelKeyPair!.publicKey, signature, dateInMillisAsBytes)
+    if (verified) {
+      return `${this.linkScheme}://${this.linkVersion}/${base58.encode(new Uint8Array(publicKeyBytes))}/${dateInMillis}/${encodedSignature}/${encodedName}`
+    } else {
+      return "UNVERIFIED"
+    }
   }
 
   private base64ToBase64Url = (base64: string): string => {
@@ -238,15 +243,28 @@ export enum Language {
   ChineseSimplified = 10,
 }
 
+export class CensoWalletConfig {
+  apiUrl: string
+  apiVersion: string
+  linkScheme: string
+  linkVersion: string
+  constructor(apiUrl?: string, apiVersion?: string, linkScheme?: string, linkVersion?: string) {
+    this.apiUrl = apiUrl ?? 'https://api.censo.co'
+    this.apiVersion = apiVersion ?? 'v1'
+    this.linkScheme = linkScheme ?? 'censo-import'
+    this.linkVersion = linkVersion ?? 'v1'
+  }
+}
+
 export default class CensoWalletIntegration {
-  apiUrl = 'https://api.censo.co'
-  apiVersion = 'v1'
-  linkScheme = 'censo-import-integration'
-  linkVersion = 'v1'
+  private config: CensoWalletConfig
+  constructor(config?: CensoWalletConfig) {
+    this.config = config ?? new CensoWalletConfig()
+  }
 
   initiate = (onFinished: (success: boolean) => void): Promise<Session> => {
     const name = (typeof window !== "undefined" ? window.location.hostname : "UNKNOWN")
-    const session = new Session(name, this.apiUrl, this.apiVersion, this.linkScheme, this.linkVersion, onFinished)
+    const session = new Session(name, this.config.apiUrl, this.config.apiVersion, this.config.linkScheme, this.config.linkVersion, onFinished)
     return session.setKeypairs()
   }
 }
