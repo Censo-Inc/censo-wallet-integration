@@ -205,7 +205,7 @@ export class Session {
     let kdfSalt = new Uint8Array(65)
     kdfSalt[0] = 4
     Buffer.from(Buffer.from(this.base64UrlToBase64(ephemeralKeyPair.publicKey.x!), 'base64')).forEach((byte, ix) => kdfSalt[ix + 1] = byte)
-    Buffer.from(Buffer.from(this.base64ToBase64Url(ephemeralKeyPair.publicKey.y!), 'base64')).forEach((byte, ix) => kdfSalt[ix + 33] = byte)
+    Buffer.from(Buffer.from(this.base64UrlToBase64(ephemeralKeyPair.publicKey.y!), 'base64')).forEach((byte, ix) => kdfSalt[ix + 33] = byte)
     const derivedKey = Buffer.from(this.kdf2(Buffer.from(sharedKey), kdfSalt))
 
     const encryptedData = await subtle.encrypt({
