@@ -1,6 +1,5 @@
 import type {JsonWebKey} from "crypto";
 
-const { subtle } = globalThis.crypto;
 import base58 from "bs58";
 import axios from 'axios';
 import { AxiosHeaders } from "axios";
@@ -9,8 +8,20 @@ import elliptic from 'js-crypto-ec';
 import sha256 from 'js-sha256';
 import { Buffer } from 'buffer';
 
+async function importSubtle(): Promise<any> {
+  if (globalThis.crypto) {
+    const { subtle } = globalThis.crypto
+    return subtle
+  } else {
+    const crypto = await import("crypto")
+    return crypto.webcrypto.subtle
+  }
+}
+
+const subtle = await importSubtle()
+
 export class Session {
-  private name: string
+  private readonly name: string
   private readonly apiUrl: string
   private readonly apiVersion: string
   private readonly linkScheme: string
@@ -149,10 +160,15 @@ export class Session {
     const publicKeyBytes = await subtle.exportKey("raw", this.channelKeyPair!.publicKey)
     const dateInMillis = this.keyPairsCreatedAt!.getTime()
     const dateInMillisAsBytes = (new TextEncoder()).encode(dateInMillis.toString())
-    const signature = await subtle.sign(this.ECDSA_SIGN_VERIFY, this.channelKeyPair!.privateKey, dateInMillisAsBytes)
+    const nameBuffer = Buffer.from(this.name)
+    const nameHash = await subtle.digest({"name": "SHA-256"}, nameBuffer)
+    const dataToSign = new Uint8Array(dateInMillisAsBytes.byteLength + nameHash.byteLength)
+    dataToSign.set(new Uint8Array(dateInMillisAsBytes), 0)
+    dataToSign.set(new Uint8Array(nameHash), dateInMillisAsBytes.byteLength)
+    const signature = await subtle.sign(this.ECDSA_SIGN_VERIFY, this.channelKeyPair!.privateKey, dataToSign)
     const encodedSignature = this.base64ToBase64Url(Buffer.from(signature).toString('base64'))
-    const encodedName = this.base64ToBase64Url(Buffer.from(this.name).toString('base64'))
-    const verified = await subtle.verify(this.ECDSA_SIGN_VERIFY, this.channelKeyPair!.publicKey, signature, dateInMillisAsBytes)
+    const encodedName = this.base64ToBase64Url(nameBuffer.toString('base64'))
+    const verified = await subtle.verify(this.ECDSA_SIGN_VERIFY, this.channelKeyPair!.publicKey, signature, dataToSign)
     if (verified) {
       return `${this.linkScheme}://${this.linkVersion}/${base58.encode(new Uint8Array(publicKeyBytes))}/${dateInMillis}/${encodedSignature}/${encodedName}`
     } else {
