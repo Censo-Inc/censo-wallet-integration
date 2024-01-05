@@ -5,7 +5,7 @@ const sdk = new CensoWalletIntegration(
   new CensoWalletConfig(
     process.env.CENSO_API_URL ?? 'https://api.censo.co',
     process.env.CENSO_API_VERSION ?? 'v1',
-    process.env.CENSO_LINK_SCHEME ?? 'censo-import',
+    process.env.CENSO_LINK_SCHEME ?? 'censo-main',
     process.env.CENSO_LINK_VERSION ?? 'v1'
   )
 );

@@ -170,7 +170,7 @@ export class Session {
     const encodedName = this.base64ToBase64Url(nameBuffer.toString('base64'))
     const verified = await subtle.verify(this.ECDSA_SIGN_VERIFY, this.channelKeyPair!.publicKey, signature, dataToSign)
     if (verified) {
-      return `${this.linkScheme}://${this.linkVersion}/${base58.encode(new Uint8Array(publicKeyBytes))}/${dateInMillis}/${encodedSignature}/${encodedName}`
+      return `${this.linkScheme}://import/${this.linkVersion}/${base58.encode(new Uint8Array(publicKeyBytes))}/${dateInMillis}/${encodedSignature}/${encodedName}`
     } else {
       return "UNVERIFIED"
     }
@@ -275,7 +275,7 @@ export class CensoWalletConfig {
   constructor(apiUrl?: string, apiVersion?: string, linkScheme?: string, linkVersion?: string) {
     this.apiUrl = apiUrl ?? 'https://api.censo.co'
     this.apiVersion = apiVersion ?? 'v1'
-    this.linkScheme = linkScheme ?? 'censo-import'
+    this.linkScheme = linkScheme ?? 'censo-main'
     this.linkVersion = linkVersion ?? 'v1'
   }
 }
