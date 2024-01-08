@@ -137,23 +137,27 @@ export class Session {
 
   connect = async (onConnected: () => void): Promise<string> => {
     this.checkConnectedInterval = setInterval(() => {
-      // TODO - stop checking 10 seconds after keypair generation
-      try {
-        this.checkConnected().then(async (completed) => {
-          if (completed) {
-            if (this.checkConnectedInterval != null) {
-              clearInterval(this.checkConnectedInterval)
+      // check if session is expired (10 minutes after keypair creation)
+      if (new Date().getTime() - (this.keyPairsCreatedAt?.getTime() ?? 0) > 10 * 60 * 1000) {
+        this.cancel()
+      } else {
+        try {
+          this.checkConnected().then(async (completed) => {
+            if (completed) {
+              if (this.checkConnectedInterval != null) {
+                clearInterval(this.checkConnectedInterval)
+              }
+              await onConnected()
             }
-            await onConnected()
+          })
+        } catch (e) {
+          console.log("unable to connect", e)
+          if (this.checkConnectedInterval != null) {
+            clearInterval(this.checkConnectedInterval)
           }
-        })
-      } catch (e) {
-        console.log("unable to connect", e)
-        if (this.checkConnectedInterval != null) {
-          clearInterval(this.checkConnectedInterval)
+          this.finished = true
+          this.onFinished(false)
         }
-        this.finished = true
-        this.onFinished(false)
       }
     }, 500)
 
