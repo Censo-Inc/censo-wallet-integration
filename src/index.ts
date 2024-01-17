@@ -118,7 +118,7 @@ export class Session {
         const derSignature = Buffer.from(result.data['importState']['ownerProof'], 'base64')
         const ownerSignature = this.derToP1363(derSignature)
         if (ownerSignature === undefined) {
-          console.log("Could not convert signature from DER to P1363 format", derSignature)
+          console.log("Could not convert signature from DER to P1363 format")
           throw new Error("Could not verify user")
         } else {
           const publicKey = await subtle.exportKey("raw", this.channelKeyPair!.publicKey)
